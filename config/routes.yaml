@@ -1,3 +1,11 @@
+# nom
+# chemin
+# controller -> nom d'une classe à appeler et la méthode que l'on souhaite appliquer sur cette classe
+
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+
+home:
+  path: /
+  controller: App\Controller\HomeController::index
