@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Property;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\QueryBuilder as ORMQueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 // Le Repository permet de créer des requêtes SQL
@@ -20,16 +22,42 @@ class PropertyRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Property::class);
     }
+
     /**
      * @return Property[]
      */
     public function findAllVisible(): array
     {
-        return $this->createQueryBuilder('p')
-            ->where('p.sold = false')
+        // return $this->createQueryBuilder('p')
+        //     ->where('p.sold = false')
+        return $this->findVisibleQuery()
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return Property[]
+     */
+    public function findLatest(): array
+    {
+        // return $this->createQueryBuilder('p')
+        //     ->where('p.sold = false')
+        return $this->findVisibleQuery()
+            ->setMaxResults(4)
+            ->getQuery()
+            ->getResult();
+    }
+
+    # on place les méthodes privées à la fin car on ne les regarde jamais
+    # répétition présente dans findAllVisible et findLatest
+    # création d'une méthode privée permettant de générer la requête pour trouver tous les enregistrements qui sont visibles
+    private function findVisibleQuery(): ORMQueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.sold = false');
+    }
+
+
 
     // /**
     //  * @return Property[] Returns an array of Property objects

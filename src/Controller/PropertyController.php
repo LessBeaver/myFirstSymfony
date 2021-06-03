@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Property;
 use App\Repository\PropertyRepository;
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\ORM\Repository\RepositoryFactory;
+use Doctrine\ORM\EntityManagerInterface;
+// use Doctrine\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,15 +19,14 @@ class PropertyController extends AbstractController
     private $repository;
 
     /**
-     * @var ObjectManager
+     * @var EntityManagerInterface
      */
     private $em;
 
-
-    public function __construct(PropertyRepository $repository, ObjectManager $em)
+    # Toutes les entités que l'on va récupérer via le repository vont automatiquement être traquées par l'entity manager -> em
+    public function __construct(PropertyRepository $repository, EntityManagerInterface $em)
     {
         $this->repository = $repository;
-        # Toutes les entités que l'on va récupérer via le repository vont automatiquement être traquées par l'entity manager -> em
         $this->em = $em;
     }
 
@@ -35,12 +36,9 @@ class PropertyController extends AbstractController
 
     public function index(): Response
     {
-        $property = $this->repository->findAllVisible();
-        dump($property);
-        $property[0]->setSold(true);
-        $this->em->flush();
-
         return $this->render('property/index.html.twig', ['current_menu' => 'properties']);
+
+        // La 1ère chose à faire est de créer une property puis d'enchaîner les setter afin de remplir celle-ci
         // $property = new Property();
         // $property->setTitle("Mon premier bien")
         //     ->setPrice(200000)
@@ -69,5 +67,27 @@ class PropertyController extends AbstractController
         // $property = $this->repository->findAll();
         // findOneBy() -> il prend en params des critères et va renvoyer les éléments correspondants
         // $property = $this->repository->findOneBy(["floor" => 4]);
+    }
+
+    /** 
+     * @Route("/biens/{slug}-{id}", name="property.show", requirements={"slug": "[a-z0-9\-]*"})
+     * @param Property $property
+     * @return Response */
+
+    //  Cette méthode permet de rediriger l'utilisateur vers le bon lien (lien canonique) en cas d'erreur dans la rédaction de l'url -> très important pour le référencement
+    public function show(Property $property, string $slug): Response
+    // public function show($slug, $id): Response
+    {
+        if ($property->getSlug() !== $slug) {
+            return $this->redirectToRoute('property.show', [
+                'id' => $property->getId(),
+                'slug' => $property->getSlug()
+            ], 301);
+        }
+        // $property = $this->repository->find($id);
+        return $this->render('property/show.html.twig', [
+            'property' => $property,
+            'current_menu' => 'properties'
+        ]);
     }
 }

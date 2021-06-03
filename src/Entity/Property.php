@@ -6,8 +6,9 @@ use App\Repository\PropertyRepository;
 use DateTime as GlobalDateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints\DateTime;
+use Cocur\Slugify\Slugify;
 
-// Cette entité -> Property, est associée à ce Repository -> PropertyRepository
+// Pour ceette entité -> Property, la classe qui correspond est -> PropertyRepository
 /**
  * @ORM\Entity(repositoryClass=PropertyRepository::class)
  */
@@ -108,6 +109,11 @@ class Property
         return $this->title;
     }
 
+    public function getSlug(): ?string
+    {
+        return (new Slugify())->slugify($this->title);
+    }
+
     // ces setter sont fluant -> plutôt que de ne rien renvoyer, ils renvoient l'instance de l'objet (permettant d'enchaîner les méthodes)
     public function setTitle(string $title): self
     {
@@ -181,6 +187,11 @@ class Property
         return $this->price;
     }
 
+    public function getFormattedPrice(): string
+    {
+        return number_format($this->price, 0, '', ' ');
+    }
+
     public function setPrice(int $price): self
     {
         $this->price = $price;
@@ -191,6 +202,11 @@ class Property
     public function getHeat(): ?int
     {
         return $this->heat;
+    }
+
+    public function getHeatType(): string
+    {
+        return self::HEAT[$this->heat];
     }
 
     public function setHeat(int $heat): self
